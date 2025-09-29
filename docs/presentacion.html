@@ -1,0 +1,108 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presentación sobre Maquillaje</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        header {
+            background-color: #e91e63;
+            color: white;
+            text-align: center;
+            padding: 2em;
+        }
+        section {
+            margin: 2em auto;
+            max-width: 800px;
+            padding: 1em;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 1em 0;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        h2 {
+            color: #e91e63;
+        }
+        p {
+            line-height: 1.6;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>El Arte del Maquillaje</h1>
+    </header>
+
+    <section>
+        <h2>Historia del Maquillaje</h2>
+        <p>El maquillaje tiene raíces que se remontan a civilizaciones antiguas, como Egipto y Mesopotamia, donde se usaba con fines rituales y estéticos.</p>
+        <img src="images/historia1.jpg" alt="Maquillaje en el Antiguo Egipto">
+    </section>
+
+    <section>
+        <h2>Técnicas Modernas</h2>
+        <p>Hoy en día, el maquillaje combina arte y tecnología, con técnicas como el contouring y el uso de productos de larga duración.</p>
+        <img src="images/tecnicas1.jpg" alt="Técnica de contouring">
+    </section>
+
+    <section>
+        <h2>Impacto Cultural</h2>
+        <p>El maquillaje es una forma de expresión personal y cultural, reflejando tendencias, identidad y creatividad en todo el mundo.</p>
+        <img src="images/cultural1.jpg" alt="Maquillaje cultural">
+    </section>
+</body>
+</html>
